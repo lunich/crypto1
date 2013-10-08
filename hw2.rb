@@ -7,12 +7,17 @@ puts OpenSSL::OPENSSL_VERSION
 class AES
   def encrypt_cbc(str, key, iv)
     prepare_for_encryption(str, key, iv)
-    Utils.str2hex(do_encrypt)
+    Utils.str2hex(do_encrypt_cbc)
   end
 
   def decrypt_cbc(str, key)
     prepare_for_decryption(str, key, 16)
     do_decrypt_cbc
+  end
+
+  def encrypt_ctr(str, key, iv)
+    prepare_for_encryption(str, key, iv)
+    do_encrypt_ctr
   end
 
   def decrypt_ctr(str, key)
@@ -40,6 +45,10 @@ private
   end
 
   def do_decrypt_ctr
+    do_encrypt_ctr
+  end
+
+  def do_encrypt_ctr
     @result = ''
     @cipher.encrypt
     @data.each_slice(16) do |slice, i|
@@ -62,7 +71,7 @@ private
     @result
   end
 
-  def do_encrypt
+  def do_encrypt_cbc
     @result = @iv
     @cipher.encrypt
     @data.each_slice(16) do |slice|
@@ -101,7 +110,9 @@ raise "INVALID" unless crypter.encrypt_cbc(res, key, enc[0, 32])
 enc = "69dda8455c7dd4254bf353b773304eec0ec7702330098ce7f7520d1cbbb20fc388d1b0adb5054dbd7370849dbf0b88d393f252e764f1f5f7ad97ef79d59ce29f5f51eeca32eabedd9afa9329"
 key = "36f18357be4dbd77f050515c73fcf9f2"
 puts res = crypter.decrypt_ctr(enc, key)
+raise "INVALID" unless crypter.encrypt_ctr(res, key, enc[0, 32])
 
 enc = "770b80259ec33beb2561358a9f2dc617e46218c0a53cbeca695ae45faa8952aa0e311bde9d4e01726d3184c34451"
 key = "36f18357be4dbd77f050515c73fcf9f2"
 puts res = crypter.decrypt_ctr(enc, key)
+raise "INVALID" unless crypter.encrypt_ctr(res, key, enc[0, 32])
