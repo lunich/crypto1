@@ -17,7 +17,7 @@ class AES
 
   def encrypt_ctr(str, key, iv)
     prepare_for_encryption(str, key, iv)
-    do_encrypt_ctr
+    Utils.str2hex(@iv + do_encrypt_ctr)
   end
 
   def decrypt_ctr(str, key)
@@ -105,14 +105,14 @@ raise "INVALID" unless enc == crypter.encrypt_cbc(res, key, enc[0, 32])
 enc = "5b68629feb8606f9a6667670b75b38a5b4832d0f26e1ab7da33249de7d4afc48e713ac646ace36e872ad5fb8a512428a6e21364b0c374df45503473c5242a253"
 key = "140b41b22a29beb4061bda66b6747e14"
 puts res = crypter.decrypt_cbc(enc, key)
-raise "INVALID" unless crypter.encrypt_cbc(res, key, enc[0, 32])
+raise "INVALID" unless enc == crypter.encrypt_cbc(res, key, enc[0, 32])
 
 enc = "69dda8455c7dd4254bf353b773304eec0ec7702330098ce7f7520d1cbbb20fc388d1b0adb5054dbd7370849dbf0b88d393f252e764f1f5f7ad97ef79d59ce29f5f51eeca32eabedd9afa9329"
 key = "36f18357be4dbd77f050515c73fcf9f2"
 puts res = crypter.decrypt_ctr(enc, key)
-raise "INVALID" unless crypter.encrypt_ctr(res, key, enc[0, 32])
+raise "INVALID" unless enc == crypter.encrypt_ctr(res, key, enc[0, 32])
 
 enc = "770b80259ec33beb2561358a9f2dc617e46218c0a53cbeca695ae45faa8952aa0e311bde9d4e01726d3184c34451"
 key = "36f18357be4dbd77f050515c73fcf9f2"
 puts res = crypter.decrypt_ctr(enc, key)
-raise "INVALID" unless crypter.encrypt_ctr(res, key, enc[0, 32])
+raise "INVALID" unless enc == crypter.encrypt_ctr(res, key, enc[0, 32])
