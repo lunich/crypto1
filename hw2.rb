@@ -1,6 +1,9 @@
 require "openssl"
 require "./utils"
 
+puts OpenSSL::VERSION
+puts OpenSSL::OPENSSL_VERSION
+
 class AES
   def encrypt_cbc(str, key, iv)
     prepare_for_encryption(str, key, iv)
@@ -26,7 +29,6 @@ private
     # decryptor
     @cipher = OpenSSL::Cipher.new('AES128')
     @cipher.padding = 0
-    @cipher.decrypt
   end
 
   def prepare_for_encryption(str, key, iv)
@@ -35,16 +37,15 @@ private
     # encryptor
     @cipher = OpenSSL::Cipher.new('AES128')
     @cipher.padding = 0
-    @cipher.encrypt
   end
 
   def do_decrypt_ctr
     @result = ''
-    i = 0
-    @data.each_slice(16) do |slice|
+    @cipher.encrypt
+    @data.each_slice(16) do |slice, i|
       h, l = @iv.unpack("Q*")
-      l += i
-      dec = decrypt_block([h, l].pack("Q*"))
+      dec = process_block(@iv)
+      @iv = [h, l + (1 << 56)].pack("Q*")
       @result += slice ^ dec
     end
     @result
@@ -52,8 +53,9 @@ private
 
   def do_decrypt_cbc
     @result = ''
+    @cipher.decrypt
     @data.each_slice(16) do |slice|
-      dec = decrypt_block(slice)
+      dec = process_block(slice)
       @result += dec ^ @iv
       @iv = slice
     end
@@ -62,20 +64,16 @@ private
 
   def do_encrypt
     @result = @iv
+    @cipher.encrypt
     @data.each_slice(16) do |slice|
       slice = align_block(slice, 16)
       block_for_aes = @iv ^ slice
-      @result += (@iv = encrypt_block(block_for_aes))
+      @result += (@iv = process_block(block_for_aes))
     end
     @result
   end
 
-  def decrypt_block(block)
-    @cipher.key = @key
-    @cipher.update(block)
-  end
-
-  def encrypt_block(block)
+  def process_block(block)
     @cipher.key = @key
     @cipher.update(block)
   end
