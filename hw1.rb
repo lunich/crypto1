@@ -1,29 +1,13 @@
-def hex2bytes(str)
-  str.scan(/../).map { |b| b.to_i(16) }
-end
-
-def bytes2hex(bytes)
-  bytes.map { |k| "%.2x" % k }.join(' ')
-end
-
-def xor_array(msg, key)
-  size1, size2 = msg.size, key.size
-  if size1 > size2
-    msg[0,size2].zip(key).map { |c1,c2| c1 ^ c2 }
-  else
-    msg.zip(key[0,size1]).map { |c1,c2| c1 ^ c2 }
-  end
-end
-
+require './utils'
 
 string1 = "attack at dawn"
-cypher1 = "09e1c5f70a65ac519458e7e53f36"
+cypher1 = "6c73d5240a948c86981bc294814d"
 string2 = "attack at dusk"
 
-key = xor_array(string1.unpack("C*"), hex2bytes(cypher1))
-puts bytes2hex(key)
-cypher2 = xor_array(string2.unpack("C*"), key)
-puts bytes2hex(cypher2)
+key = string1 ^ Utils.hex2str(cypher1)
+puts Utils.str2hex(key)
+cypher2 = string2 ^ key
+puts Utils.str2hex(cypher2)
 
 ################################################################################################
 
@@ -48,10 +32,10 @@ cipher_hexes = [
   "32510ba9babebbbefd001547a810e67149caee11d945cd7fc81a05e9f85aac650e9052ba6a8cd8257bf14d13e6f0a803b54fde9e77472dbff89d71b57bddef121336cb85ccb8f3315f4b52e301d16e9f52f904"
 ]
 
-cipher_bytes = cipher_hexes.map { |h| hex2bytes(h) }
+cipher_bytes = cipher_hexes.map { |h| Utils.hex2arr(h) }
 
 # initially - spaces
-messages = cipher_bytes.map { |b| space_char * b.size}
+messages = cipher_bytes.map { |b| space_char * b.size }
 
 # need to fill it manually step by step
 messages = [
@@ -75,7 +59,7 @@ puts message_bytes.map { |a| a.pack("C*").inspect }
 0.upto(cipher_hexes.size-1) do |n|
   0.upto(cipher_hexes.size-1) do |i|
     unless n == i
-      cn_xor_ci = xor_array(cipher_bytes[n], cipher_bytes[i])
+      cn_xor_ci = cipher_bytes[n] ^ cipher_bytes[i]
       message_bytes[n].zip(cn_xor_ci).each_with_index do |pair, index|
         message_byte, cn_xor_ci_byte = pair
         if message_byte == space_byte && !letter_bytes.include?(cn_xor_ci_byte)
