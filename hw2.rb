@@ -1,9 +1,6 @@
 require "openssl"
 require "./utils"
 
-puts OpenSSL::VERSION
-puts OpenSSL::OPENSSL_VERSION
-
 class AES
   def encrypt_cbc(str, key, iv)
     prepare_for_encryption(str, key, iv)
